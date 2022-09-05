@@ -1,0 +1,93 @@
+//@version=5
+// 1. Define strategy settings
+
+strategy("M01 WMA", overlay=true, pyramiding=0, default_qty_type=strategy.percent_of_equity, default_qty_value=25, calc_on_every_tick=false, 
+     commission_type=strategy.commission.percent, commission_value=0.18, slippage=0, process_orders_on_close=false, calc_on_every_tick=true
+     , precision=2, initial_capital= 38000)
+//
+startDate = input.int(title='Start Date', defval=1, minval=1, maxval=31)
+startMonth = input.int(title='Start Month', defval=8, minval=1, maxval=12)
+startYear = input.int(title='Start Year', defval=2021, minval=1800, maxval=2100)
+
+endDate = input.int(title='End Date', defval=31, minval=1, maxval=31)
+endMonth = input.int(title='End Month', defval=12, minval=1, maxval=12)
+endYear = input.int(title='End Year', defval=2022, minval=1800, maxval=2100)
+
+inDateRange = time >= timestamp('America/Vancouver', startYear, startMonth, startDate, 0, 0) and time < timestamp('America/Vancouver', endYear, endMonth, endDate, 0, 0)
+//TR Bollinger Bands
+smaLength = input(title='SMA Length', defval=350)
+atrLength = input(title='ATR Length', defval=20)
+
+source = close
+length = input.int(20, minval=1)
+mult = input.float(2.0, minval=0.001, maxval=50)
+//TS- ADX and DI
+adxlen = input(14)
+
+
+//YC WMA Reversal
+len = input.int(9, minval=1, title="Length")
+src = input(close, title="Source")
+offset = input.int(title="Offset", defval=0, minval=-500, maxval=500)
+
+//TR MACD Strategy
+fast_length = input(title="Fast Length", defval=12)
+slow_length = input(title="Slow Length", defval=26)
+src = input(title="Source", defval=close)
+signal_length = input.int(title="Signal Smoothing",  minval = 1, maxval = 50, defval = 9)
+sma_source = input.string(title="Oscillator MA Type",  defval="EMA", options=["SMA", "EMA"])
+sma_signal = input.string(title="Signal Line MA Type", defval="EMA", options=["SMA", "EMA"])
+
+atrLength = input(title='ATR Length', defval=20)
+
+
+// 2. Calculate strategy values
+
+// TR Bollinger Bands
+
+basis = ta.sma(source, length)
+dev = mult * ta.stdev(source, length)
+upper = basis + dev
+lower = basis - dev
+offset = input.int(0, "Offset", minval = -500, maxval = 500)
+
+atrValue = ta.atr(atrLength)
+riskEquity = riskPerc / 100 * strategy.equity
+atrCurrency = atrValue * syminfo.pointvalue
+posSize = usePosSize ? math.floor(riskEquity / atrCurrency) : default_qty_value 
+
+// //TS- ADX and DI
+
+
+
+//
+
+
+// 3. Output strategy data
+
+//TR Bollinger Bands
+plot(basis, "Basis", color=#FF6D00, offset = offset)
+p1 = plot(upper, "Upper", color=#2962FF, offset = offset)
+p2 = plot(lower, "Lower", color=#2962FF, offset = offset)
+fill(p1, p2, title = "Background", color=color.rgb(33, 150, 243, 95))
+
+
+
+// 4. Determine long trading conditions
+
+//TR Bollinger Bands
+BB_buyEntry = ta.crossover(source, lower)
+
+// 5. Code short trading conditions
+//TR Bollinger Bands
+BB_sellEntry = ta.crossunder(source, upper)
+
+// 6. Submit entry orders
+
+
+
+
+// 7. Submit exit orders
+
+
+
